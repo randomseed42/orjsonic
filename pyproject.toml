@@ -17,3 +17,6 @@ dependencies = ["chardet", "numpy", "orjson", "pandas"]
 
 [project.urls]
 Homepage = "https://github.com/randomseed42/orjsonic"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

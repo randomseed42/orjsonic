@@ -142,7 +142,7 @@ wheels = [
 
 [[package]]
 name = "orjsonic"
-version = "0.1.1"
+version = "0.1.2"
 source = { virtual = "." }
 dependencies = [
     { name = "chardet" },
@@ -153,7 +153,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chardet", specifier = ">=5.2.0" },
+    { name = "chardet" },
     { name = "numpy" },
     { name = "orjson" },
     { name = "pandas" },

@@ -7,6 +7,8 @@ from typing import Any, Callable, Literal
 import chardet
 import numpy as np
 import orjson
+import pandas as pd
+
 
 orjsonic = orjson
 Fragment = orjson.Fragment
@@ -54,10 +56,15 @@ def __custom_default(obj: Any, datetime_fmt: str = None, date_fmt: str = None, t
     date_fmt = date_fmt or '%Y-%m-%d'
     time_fmt = time_fmt or '%H:%M:%S'
     if isinstance(obj, datetime.datetime):
+        if obj is pd.NaT:
+            return None
         return obj.strftime(datetime_fmt)
     if isinstance(obj, datetime.date):
         return obj.strftime(date_fmt)
     if isinstance(obj, datetime.time):
+        # tzinfo only valid for datetime.datetime, not datetime.time
+        # orjson will raise a TypeError if tzinfo is present
+        # orjsonic will ignore the tzinfo whether %z or %Z is present in time_fmt or not
         return obj.strftime(time_fmt)
     if isinstance(obj, np.datetime64):
         if np.isnat(obj):
@@ -69,17 +76,21 @@ def __custom_default(obj: Any, datetime_fmt: str = None, date_fmt: str = None, t
             return obj.item().strftime(date_fmt)
     if isinstance(obj, np.ndarray):
         return obj.tolist()
+    if isinstance(obj, pd.Series):
+        return obj.to_list()
+    return orjson.dumps(obj)
 
 
 def dumps(
     __obj: Any,
+    /,
     default: Callable[[Any], Any] = None,
-    option: int = 0,
+    option: int = None,
     datetime_fmt: str = None,
     date_fmt: str = None,
     time_fmt: str = None,
     output: str | os.PathLike | pathlib.Path = None,
-    return_str: bool = True,
+    return_str: bool = False,
 ) -> str:
     """
     Serialize an object to a JSON-formatted string using orjson with custom options and formatting.
@@ -92,7 +103,7 @@ def dumps(
     date_fmt (str, optional): The format string for date objects. Defaults to None.
     time_fmt (str, optional): The format string for time objects. Defaults to None.
     output (str | os.PathLike | pathlib.Path, optional): A file path to write the serialized JSON data. Defaults to None.
-    return_str (bool, optional): If True, return the JSON data as a string. If False, return the JSON data as bytes. Defaults to True.
+    return_str (bool, optional): If True, return the JSON data as a string. If False, return the JSON data as bytes. Defaults to False.
 
     Returns:
     str | bytes: The JSON-formatted string or bytes of the serialized object, depending on the `return_str` parameter.
@@ -102,6 +113,10 @@ def dumps(
     If serialization fails with a TypeError, it falls back to using the custom default function.
     If an output path is provided, the serialized JSON data is written to the specified file.
     """
+    if option is None:
+        option = 0
+    if type(option) is not int:
+        raise TypeError('option must be an integer or orjonic.OPT_* or None')
     if default is None and any((datetime_fmt is not None, date_fmt is not None, time_fmt is not None)):
         custom_default = partial(__custom_default, datetime_fmt=datetime_fmt, date_fmt=date_fmt, time_fmt=time_fmt)
         option = option | OPT_PASSTHROUGH_DATETIME
@@ -210,5 +225,22 @@ def loads(
             data = __read_file(__obj)
             return loads(data, encoding=encoding, errors=errors)
         else:
-            data = __obj.encode('utf-8')
-            return loads(data, encoding=encoding, errors=errors)
+            try:
+                data = __obj.encode('utf-8')
+                return loads(data, encoding=encoding, errors=errors)
+            except UnicodeEncodeError as err:
+                if 'surrogates not allowed' in str(err):
+                    try:
+                        data = __obj.encode('unicode_escape')
+                        return loads(data, encoding=encoding, errors=errors)
+                    except JSONDecodeError as sub_err:
+                        if (
+                            'no low surrogate in string' in str(sub_err)
+                            or 'invalid high surrogate in string' in str(sub_err)
+                        ):
+                            data = __obj.encode('utf-8', errors='replace')
+                            return loads(data, encoding=encoding, errors=errors)
+                else:
+                    raise err
+
+    return orjson.loads(__obj)

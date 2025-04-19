@@ -174,4 +174,4 @@ cython_debug/
 .pypirc
 
 # Pytest mock data files
-tests/data/
+data/
