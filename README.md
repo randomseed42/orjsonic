@@ -15,8 +15,8 @@ It basically copies the `orjson` API with some customized default behaviors.
 <th>orjsonic</th>
 </tr>
 <tr>
-<td style="vertical-align: top">
-<div style="width: 400px;">
+<td valign="top">
+<div style="width: 377px;">
 
 ```python
 >>> import orjson
@@ -29,8 +29,8 @@ orjson.JSONDecodeError: unexpected character:
 
 </div>
 </td>
-<td style="vertical-align: top">
-<div style="width: 390px;">
+<td valign="top">
+<div style="width: 370px;">
 
 ```python
 >>> import orjsonic
@@ -51,8 +51,8 @@ orjson.JSONDecodeError: unexpected character:
 <th>orjsonic</th>
 </tr>
 <tr>
-<td style="vertical-align: top">
-<div style="width: 400px;">
+<td valign="top">
+<div style="width: 377px;">
 
 ```python
 >>> import orjson
@@ -61,13 +61,14 @@ orjson.JSONDecodeError: unexpected character:
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 orjson.JSONDecodeError: str is not valid UTF-8:
-  surrogates not allowed: line 1 column 1 (char 0)
+  surrogates not allowed:
+    line 1 column 1 (char 0)
 ```
 
 </div>
 </td>
-<td style="vertical-align: top">
-<div style="width: 390px;">
+<td valign="top">
+<div style="width: 370px;">
 
 ```python
 >>> import orjsonic
@@ -91,8 +92,8 @@ orjson.JSONDecodeError: str is not valid UTF-8:
 <th>orjsonic</th>
 </tr>
 <tr>
-<td style="vertical-align: top">
-<div style="width: 400px;">
+<td valign="top">
+<div style="width: 377px;">
 
 ```python
 >>> import orjson
@@ -101,13 +102,14 @@ orjson.JSONDecodeError: str is not valid UTF-8:
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 orjson.JSONDecodeError: str is not valid UTF-8:
-  surrogates not allowed: line 1 column 1 (char 0)
+  surrogates not allowed:
+    line 1 column 1 (char 0)
 ```
 
 </div>
 </td>
-<td style="vertical-align: top">
-<div style="width: 390px;">
+<td valign="top">
+<div style="width: 370px;">
 
 ```python
 >>> import orjsonic
@@ -132,8 +134,8 @@ orjson.JSONDecodeError: str is not valid UTF-8:
 <th>orjsonic</th>
 </tr>
 <tr>
-<td style="vertical-align: top">
-<div style="width: 400px;">
+<td valign="top">
+<div style="width: 377px;">
 
 ```python
 >>> import datetime
@@ -161,8 +163,8 @@ TypeError: Type is not JSON serializable:
 
 </div>
 </td>
-<td style="vertical-align: top">
-<div style="width: 390px;">
+<td valign="top">
+<div style="width: 370px;">
 
 ```python
 >>> import datetime
@@ -187,7 +189,6 @@ b'{"datetime":"2025-01-02 03:04:05",
 
 >>> orjsonic.dumps(
 >>>     data,
->>>     option=orjson.OPT_PASSTHROUGH_DATETIME,
 >>>     datetime_fmt='%Y%m%d%H%M%S',
 >>>     date_fmt='%Y-%m-%d %H:%M:%S.%f',
 >>>     time_fmt='%H:%M:%S.%f',
@@ -210,8 +211,8 @@ b'{"datetime":"20250102030405",
 <th>orjsonic</th>
 </tr>
 <tr>
-<td style="vertical-align: top">
-<div style="width: 400px;">
+<td valign="top">
+<div style="width: 377px;">
 
 ```python
 >>> import datetime
@@ -248,8 +249,8 @@ TypeError: Type is not JSON serializable:
 
 </div>
 </td>
-<td style="vertical-align: top">
-<div style="width: 390px;">
+<td valign="top">
+<div style="width: 370px;">
 
 ```python
 >>> import datetime
@@ -283,8 +284,8 @@ b'[1,"2025-01-02",null]'
 <th>orjsonic</th>
 </tr>
 <tr>
-<td style="vertical-align: top">
-<div style="width: 400px;">
+<td valign="top">
+<div style="width: 377px;">
 
 ```python
 >>> import orjson
@@ -302,8 +303,8 @@ b'[1,"2025-01-02",null]'
 
 </div>
 </td>
-<td style="vertical-align: top">
-<div style="width: 390px;">
+<td valign="top">
+<div style="width: 370px;">
 
 ```python
 >>> import orjsonic
