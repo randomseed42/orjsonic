@@ -1,6 +1,7 @@
 import datetime
 import os
 import pathlib
+import sys
 from functools import partial
 from typing import Any, Callable, Literal
 
@@ -129,13 +130,13 @@ def dumps(
             data = orjson.dumps(__obj, default=custom_default, option=option | OPT_PASSTHROUGH_DATETIME)
 
     if output is not None:
-        with open(output, 'wb') as f:
+        with open(output, 'wb', encoding=sys.getdefaultencoding()) as f:
             f.write(data)
 
     if not return_str:
         return data
     else:
-        return data.decode('utf-8')
+        return data.decode(sys.getdefaultencoding())
 
 
 def __is_valid_file_path(s: str | os.PathLike | pathlib.Path):
@@ -220,7 +221,7 @@ def loads(
             data = __convert_to_utf8(__obj, encoding=encoding, errors=errors)
             return orjson.loads(data)
 
-    if isinstance(__obj, str):
+    if isinstance(__obj, (str, os.PathLike, pathlib.Path)):
         if __is_valid_file_path(__obj):
             data = __read_file(__obj)
             return loads(data, encoding=encoding, errors=errors)
