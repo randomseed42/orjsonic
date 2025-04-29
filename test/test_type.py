@@ -2,6 +2,7 @@
 
 import io
 import sys
+from base64 import b64decode
 
 import pytest
 
@@ -256,16 +257,18 @@ class TestType:
         pytest.raises(orjson.JSONEncodeError, orjson.dumps, "\ud83d\ude80")
         pytest.raises(orjson.JSONEncodeError, orjson.dumps, "\udcff")
         pytest.raises(orjson.JSONEncodeError, orjson.dumps, {"\ud83d\ude80": None})
-        pytest.raises(
-            orjson.JSONEncodeError, orjson.dumps, b"\xed\xa0\xbd\xed\xba\x80"
-        )  # \ud83d\ude80
+        # pytest.raises(
+        #     orjson.JSONEncodeError, orjson.dumps, b"\xed\xa0\xbd\xed\xba\x80"
+        # )  # \ud83d\ude80
+        assert b64decode(orjson.loads(orjson.dumps(b"\xed\xa0\xbd\xed\xba\x80"))) == b"\xed\xa0\xbd\xed\xba\x80"
 
     def test_bytes_dumps(self):
         """
         bytes dumps not supported
         """
-        with pytest.raises(orjson.JSONEncodeError):
-            orjson.dumps([b"a"])
+        b64decode(orjson.loads(orjson.dumps([b"a"]))[0]) == b"a"
+        # with pytest.raises(orjson.JSONEncodeError):
+        #     orjson.dumps([b"a"])
 
     def test_bytes_loads(self):
         """

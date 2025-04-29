@@ -2,6 +2,7 @@ import datetime
 import os
 import pathlib
 import sys
+from base64 import b64encode
 from functools import partial
 from typing import Any, Callable, Literal
 
@@ -9,7 +10,6 @@ import chardet
 import numpy as np
 import orjson
 import pandas as pd
-
 
 orjsonic = orjson
 Fragment = orjson.Fragment
@@ -31,7 +31,9 @@ OPT_STRICT_INTEGER = orjson.OPT_STRICT_INTEGER
 OPT_UTC_Z = orjson.OPT_UTC_Z
 
 
-def __custom_default(obj: Any, datetime_fmt: str = None, date_fmt: str = None, time_fmt: str = None, **kwargs) -> Any:
+def __custom_default(
+    obj: Any, datetime_fmt: str = None, date_fmt: str = None, time_fmt: str = None, option: int = 0
+) -> Any:
     """
     Custom default function for serializing objects that are not natively serializable by orjson.
 
@@ -52,6 +54,7 @@ def __custom_default(obj: Any, datetime_fmt: str = None, date_fmt: str = None, t
     - np.datetime64: Converts to a string using the specified datetime or date format, depending on whether it includes time information.
     - np.datetime64('NaT'): Converts to null.
     - np.ndarray: Converts to a list.
+    - bytes | bytearray | memoryview: Use base64 to encode bytes object and convert to string.
     """
     datetime_fmt = datetime_fmt or '%Y-%m-%d %H:%M:%S'
     date_fmt = date_fmt or '%Y-%m-%d'
@@ -79,7 +82,11 @@ def __custom_default(obj: Any, datetime_fmt: str = None, date_fmt: str = None, t
         return obj.tolist()
     if isinstance(obj, pd.Series):
         return obj.to_list()
-    return orjson.dumps(obj)
+    if isinstance(obj, bytes | bytearray):
+        return b64encode(obj).decode('utf-8')
+    if isinstance(obj, memoryview):
+        return b64encode(obj.tobytes()).decode('utf-8')
+    return orjson.dumps(obj, option=option)
 
 
 def dumps(
@@ -119,14 +126,18 @@ def dumps(
     if type(option) is not int:
         raise TypeError('option must be an integer or orjonic.OPT_* or None')
     if default is None and any((datetime_fmt is not None, date_fmt is not None, time_fmt is not None)):
-        custom_default = partial(__custom_default, datetime_fmt=datetime_fmt, date_fmt=date_fmt, time_fmt=time_fmt)
+        custom_default = partial(
+            __custom_default, datetime_fmt=datetime_fmt, date_fmt=date_fmt, time_fmt=time_fmt, option=option
+        )
         option = option | OPT_PASSTHROUGH_DATETIME
         data = orjson.dumps(__obj, default=custom_default, option=option)
     else:
         try:
             data = orjson.dumps(__obj, default=default, option=option | OPT_SERIALIZE_NUMPY)
         except TypeError:
-            custom_default = partial(__custom_default, datetime_fmt=datetime_fmt, date_fmt=date_fmt, time_fmt=time_fmt)
+            custom_default = partial(
+                __custom_default, datetime_fmt=datetime_fmt, date_fmt=date_fmt, time_fmt=time_fmt, option=option
+            )
             data = orjson.dumps(__obj, default=custom_default, option=option | OPT_PASSTHROUGH_DATETIME)
 
     if output is not None:
@@ -235,10 +246,7 @@ def loads(
                         data = __obj.encode('unicode_escape')
                         return loads(data, encoding=encoding, errors=errors)
                     except JSONDecodeError as sub_err:
-                        if (
-                            'no low surrogate in string' in str(sub_err)
-                            or 'invalid high surrogate in string' in str(sub_err)
-                        ):
+                        if 'no low surrogate in string' in str(sub_err) or 'invalid high surrogate in string' in str(sub_err):
                             data = __obj.encode('utf-8', errors='replace')
                             return loads(data, encoding=encoding, errors=errors)
                 else:
