@@ -141,7 +141,7 @@ def dumps(
             data = orjson.dumps(__obj, default=custom_default, option=option | OPT_PASSTHROUGH_DATETIME)
 
     if output is not None:
-        with open(output, 'wb', encoding=sys.getdefaultencoding()) as f:
+        with open(output, 'wb') as f:
             f.write(data)
 
     if not return_str:
