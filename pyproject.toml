@@ -1,6 +1,6 @@
 [project]
 name = "orjsonic"
-version = "0.1.6"
+version = "0.1.7"
 description = "A fleixible and fast wrapper around orjson for custom JSON encoding/decoding"
 readme = "README.md"
 requires-python = ">=3.10"
